@@ -29,12 +29,14 @@ from huggingfaceserver.task import (
     MLTask,
     infer_task_from_model_architecture,
     is_generative_task,
+    is_image_task,
     SUPPORTED_TASKS,
 )
 
 from . import (
     HuggingfaceGenerativeModel,
     HuggingfaceEncoderModel,
+    HuggingfaceImageModel,
     Backend,
 )
 from .vllm.utils import (
@@ -214,6 +216,27 @@ def load_model():
                 max_length=kwargs["max_length"],
                 dtype=dtype,
                 trust_remote_code=kwargs["trust_remote_code"],
+            )
+        elif is_image_task(task):
+            predictor_config = PredictorConfig(
+                args.predictor_host,
+                args.predictor_protocol,
+                args.predictor_use_ssl,
+                args.predictor_request_timeout_seconds,
+            )
+            logger.info(f"Loading image model for task '{task.name}'")
+            model = HuggingfaceImageModel(
+                model_name=args.model_name,
+                model_id_or_path=model_id_or_path,
+                task=task,
+                model_config=model_config,
+                model_revision=kwargs.get("model_revision", None),
+                image_processor_revision=kwargs.get("image_processor_revision", None),
+                do_lower_case=not kwargs.get("disable_lower_case", False),
+                add_special_tokens=not kwargs.get("disable_special_tokens", False),
+                max_length=kwargs["max_length"],
+                trust_remote_code=kwargs["trust_remote_code"],
+                predictor_config=predictor_config,
             )
         else:
             # Convert dtype from string to torch dtype. Default to float32
