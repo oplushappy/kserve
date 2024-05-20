@@ -25,6 +25,7 @@ from transformers import (
     AutoModelForSequenceClassification,
     AutoModelForTableQuestionAnswering,
     AutoModelForTokenClassification,
+    AutoModelForImageClassification,
     PretrainedConfig,
 )
 
@@ -42,6 +43,8 @@ class MLTask(str, Enum):
     text_generation = auto()
     text2text_generation = auto()
     multiple_choice = auto()
+
+    image_classification = auto()
 
     @classmethod
     def _missing_(cls, value: str):
@@ -63,6 +66,8 @@ ARCHITECTURES_2_TASK = {
     "ForConditionalGeneration": MLTask.text2text_generation,
     "MTModel": MLTask.text2text_generation,
     "EncoderDecoderModel": MLTask.text2text_generation,
+
+    "ForImageClassification": MLTask.image_classification
 }
 
 TASK_2_CLS = {
@@ -74,6 +79,8 @@ TASK_2_CLS = {
     MLTask.text_generation: AutoModelForCausalLM,
     MLTask.text2text_generation: AutoModelForSeq2SeqLM,
     MLTask.multiple_choice: AutoModelForMultipleChoice,
+
+    MLTask.image_classification: AutoModelForImageClassification
 }
 
 SUPPORTED_TASKS = {
@@ -82,6 +89,8 @@ SUPPORTED_TASKS = {
     MLTask.fill_mask,
     MLTask.text_generation,
     MLTask.text2text_generation,
+
+    MLTask.image_classification
 }
 
 
@@ -116,3 +125,9 @@ def is_generative_task(task: MLTask) -> bool:
 
 def get_model_class_for_task(task: MLTask) -> Type[AutoModel]:
     return TASK_2_CLS[task]
+
+
+def is_image_task(task:MLTask) -> bool:
+    return task in {
+        MLTask.image_classification        
+    }
