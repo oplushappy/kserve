@@ -232,9 +232,6 @@ def load_model():
                 model_config=model_config,
                 model_revision=kwargs.get("model_revision", None),
                 image_processor_revision=kwargs.get("image_processor_revision", None),
-                do_lower_case=not kwargs.get("disable_lower_case", False),
-                add_special_tokens=not kwargs.get("disable_special_tokens", False),
-                max_length=kwargs["max_length"],
                 trust_remote_code=kwargs["trust_remote_code"],
                 predictor_config=predictor_config,
             )
