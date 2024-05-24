@@ -27,9 +27,12 @@ from pytest import approx
 from .task import infer_task_from_model_architecture
 from .encoder_model import HuggingfaceEncoderModel
 from .generative_model import HuggingfaceGenerativeModel
+from .image_model import HuggingfaceImageModel
 from .task import MLTask
 import torch
 from .test_output import bert_token_classification_retrun_prob_expected_output
+import requests
+import base64
 
 
 @pytest.fixture(scope="module")
@@ -138,6 +141,15 @@ def openai_gpt_model():
     yield model
     model.stop()
 
+@pytest.fixture(scope="module")
+def vit_image_classification():
+    model = HuggingfaceImageModel(
+        "vit-base-patch16-224",
+        model_id_or_path="google/vit-base-patch16-224"
+    )
+    model.load()
+    yield model
+    model.stop()
 
 def test_unsupported_model():
     config = AutoConfig.from_pretrained("google/tapas-base-finetuned-wtq")
@@ -456,3 +468,32 @@ async def test_input_padding_with_pad_token_not_specified(
         == "west, and the sun sets in the west. \n the sun rises in the"
     )
     assert "a member of the royal family." in response.choices[1].text
+
+def get_image_from_url(url: str) -> bytes:
+    response = requests.get(url)
+    response.raise_for_status()
+    return response.content
+
+@pytest.mark.asyncio
+async def test_vit_image_classificaton_base64(vit_image_classification: HuggingfaceImageModel):
+    image_url = "http://images.cocodataset.org/val2017/000000039769.jpg"
+    img_bytes = get_image_from_url(image_url)
+
+    img_base64 = base64.b64encode(img_bytes).decode('utf-8')
+
+    response = await vit_image_classification(
+        {"instances": [{"image": img_base64}]}
+    )
+
+    assert response == {"predictions": "cat"}
+
+@pytest.mark.asyncio
+async def test_vit_image_classification_bytes(vit_image_classification: HuggingfaceImageModel):
+    image_url = "http://images.cocodataset.org/val2017/000000039769.jpg"
+    img_bytes = get_image_from_url(image_url)
+
+    response = await vit_image_classification(
+        img_bytes
+    )
+
+    assert response == {"predictions": "cat"}
