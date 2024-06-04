@@ -118,7 +118,7 @@ class HuggingfaceImageModel(Model):  # pylint:disable=c-extension-no-member
         with init_empty_weights():
             self._model = AutoModel.from_config(self.model_config)
 
-        device_map = self._device
+        device_map : str = str(self._device)
 
         if self._model._no_split_modules:
             device_map = "auto"
@@ -228,6 +228,8 @@ class HuggingfaceImageModel(Model):  # pylint:disable=c-extension-no-member
             input_batch = input_batch.to(self._device)
             try:
                 with torch.no_grad():
+                    if self._model is None:
+                        raise ValueError()
                     outputs = self._model(**input_batch).logits
                     return outputs
             except Exception as e:
