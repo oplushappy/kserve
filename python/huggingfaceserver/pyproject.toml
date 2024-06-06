@@ -16,6 +16,8 @@ transformers = "~4.40.2"
 accelerate = "~0.30.0"
 torch = "~2.3.0"
 vllm = { version = "^0.4.3", optional = true }
+requests = "^2.25.1"
+pillow = "^8.4.0"
 
 [tool.poetry.extras]
 vllm = [
