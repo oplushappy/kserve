@@ -32,11 +32,11 @@ from huggingfaceserver.task import (
     is_image_task,
     SUPPORTED_TASKS,
 )
-
+from .image_model import HuggingfaceImageModel 
 from . import (
     HuggingfaceGenerativeModel,
     HuggingfaceEncoderModel,
-    HuggingfaceImageModel,
+    # HuggingfaceImageModel,
     Backend,
 )
 from .vllm.utils import (
