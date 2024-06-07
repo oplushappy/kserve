@@ -253,7 +253,7 @@ class HuggingfaceImageModel(Model):  # pylint:disable=c-extension-no-member
             for i in range(num_rows):
                 out = outputs[i].unsqueeze(0)
                 predicted_idx = out.argmax().item()
-                label = self.model_config.id2label[str(predicted_idx)]
+                label = self.model_config.id2label[predicted_idx]
                 # inferences.append(predicted_idx)
                 inferences.append(label)
             return get_predict_response(request, inferences, self.name)

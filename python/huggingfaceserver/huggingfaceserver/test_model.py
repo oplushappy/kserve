@@ -498,4 +498,4 @@ async def test_vit_image_classification_bytes(vit_image_classification: Huggingf
         headers={}
     )
 
-    assert response == {"predictions": "cat"}
+    assert response == {"predictions": "Egyptian cat"}
