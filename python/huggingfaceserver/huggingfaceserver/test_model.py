@@ -483,7 +483,7 @@ async def test_vit_image_classificaton_base64(vit_image_classification: Huggingf
 
     response = await vit_image_classification(
         {"instances": [{"image": img_base64}]},
-        context={}
+        headers={}
     )
 
     assert response == {"predictions": "cat"}
@@ -495,7 +495,7 @@ async def test_vit_image_classification_bytes(vit_image_classification: Huggingf
 
     response = await vit_image_classification(
         img_bytes,
-        context={}
+        headers={}
     )
 
     assert response == {"predictions": "cat"}
