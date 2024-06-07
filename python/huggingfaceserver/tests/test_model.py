@@ -30,8 +30,9 @@ from huggingfaceserver.generative_model import HuggingfaceGenerativeModel
 from .image_model import HuggingfaceImageModel
 from huggingfaceserver.task import MLTask
 from test_output import bert_token_classification_return_prob_expected_output
-import requests
+# import requests
 import base64
+import urllib.request
 
 
 @pytest.fixture(scope="module")
@@ -470,9 +471,11 @@ async def test_input_padding_with_pad_token_not_specified(
     assert "a member of the royal family." in response.choices[1].text
 
 def get_image_from_url(url: str) -> bytes:
-    response = requests.get(url)
-    response.raise_for_status()
-    return response.content
+    # response = requests.get(url)
+    # response.raise_for_status()
+    # return response.content
+    with urllib.request.urlopen(url) as response:
+        return response.read()
 
 @pytest.mark.asyncio
 async def test_vit_image_classificaton_base64(vit_image_classification: HuggingfaceImageModel):
@@ -486,8 +489,8 @@ async def test_vit_image_classificaton_base64(vit_image_classification: Huggingf
         headers={}
     )
     
-    assert response == {"predictions": "Egyptian cat"}
-    
+    assert response == {"predictions": ["Egyptian cat"]}
+
 @pytest.mark.asyncio
 async def test_vit_image_classification_bytes(vit_image_classification: HuggingfaceImageModel):
     image_url = "http://images.cocodataset.org/val2017/000000039769.jpg"
@@ -498,4 +501,4 @@ async def test_vit_image_classification_bytes(vit_image_classification: Huggingf
         headers={}
     )
 
-    assert response == {"predictions": "Egyptian cat"}
+    assert response == {"predictions": ["Egyptian cat"]}
