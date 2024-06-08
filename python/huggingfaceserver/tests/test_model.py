@@ -29,8 +29,7 @@ from huggingfaceserver.encoder_model import HuggingfaceEncoderModel
 from huggingfaceserver.generative_model import HuggingfaceGenerativeModel
 from .image_model import HuggingfaceImageModel
 from huggingfaceserver.task import MLTask
-from test_output import bert_token_classification_return_prob_expected_output
-# import requests
+from test_output import bert_token_classification_return_prob_expected_output, vit_return_predict_output
 import base64
 import urllib.request
 
@@ -501,4 +500,37 @@ async def test_vit_image_classification_bytes(vit_image_classification: Huggingf
         headers={}
     )
 
+    assert response == {"predictions": ["Egyptian cat"]}
+
+@pytest.mark.asyncio
+async def test_vit_predictor_host(request, httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        json={
+            "outputs": [
+                {
+                    "name": "OUTPUT__0",
+                    "shape": [1, 1000],
+                    "data": vit_return_predict_output,
+                }
+            ]
+        }
+    )
+
+    model = HuggingfaceImageModel(
+        "vit-base-patch16-224",
+        model_id_or_path="google/vit-base-patch16-224",
+        predictor_config=PredictorConfig(
+            predictor_host="localhost:8082", predictor_protocol="v2"
+        ),
+    )
+    model.load()
+    request.addfinalizer(model.stop)
+    
+    image_url = "http://images.cocodataset.org/val2017/000000039769.jpg"
+    img_bytes = get_image_from_url(image_url)
+
+    response = await model(
+        img_bytes,
+        headers={}
+    )
     assert response == {"predictions": ["Egyptian cat"]}
