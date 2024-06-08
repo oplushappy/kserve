@@ -248,6 +248,9 @@ def get_predict_response(
             infer_outputs=infer_outputs,
             response_id=payload.id if payload.id else generate_uuid(),
         )
+    elif isinstance(payload, bytes):
+        infer_outputs = result
+        return {"predictions": infer_outputs}
     else:
         raise InvalidInput(f"unsupported payload type {type(payload)}")
 
