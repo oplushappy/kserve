@@ -156,26 +156,26 @@ class HuggingfaceImageModel(Model):  # pylint:disable=c-extension-no-member
         self.ready = True
         return self.ready
     
-    # def get_predict_input(self, payload: Union[Dict, bytes]):
-    #     """Extracts image data from the payload supporting both byte array and base64 encoded string"""
-    #     if isinstance(payload, bytes):
-    #         # Handle byte array input
-    #         images = [Image.open(io.BytesIO(payload)).convert("RGB")]
-    #     else:
-    #         # Handle JSON payload
-    #         instances = payload["instances"]
-    #         images = []
-    #         for instance in instances:
-    #             image_data = instance["image"]  # Assuming the image is in the "image" field
-    #             if isinstance(image_data, str):
-    #                 # Handle base64 encoded string
-    #                 image_bytes = base64.b64decode(image_data)
-    #             else:
-    #                 # Handle byte array
-    #                 image_bytes = image_data
-    #             image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    #             images.append(image)
-    #     return images
+    def get_predict_input(self, payload: Union[Dict, bytes]):
+        """Extracts image data from the payload supporting both byte array and base64 encoded string"""
+        if isinstance(payload, bytes):
+            # Handle byte array input
+            images = [Image.open(io.BytesIO(payload)).convert("RGB")]
+        else:
+            # Handle JSON payload
+            instances = payload["instances"]
+            images = []
+            for instance in instances:
+                image_data = instance["image"]  # Assuming the image is in the "image" field
+                if isinstance(image_data, str):
+                    # Handle base64 encoded string
+                    image_bytes = base64.b64decode(image_data)
+                else:
+                    # Handle byte array
+                    image_bytes = image_data
+                image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+                images.append(image)
+        return images
 
     def preprocess(
         self,
@@ -183,7 +183,7 @@ class HuggingfaceImageModel(Model):  # pylint:disable=c-extension-no-member
         context: Dict[str, Any],
     ) -> Union[Dict, InferRequest]:
         # Get the images from the payload
-        InferRequest(raw_inputs=payload, model_name=self.name)
+        # InferRequest(raw_inputs=payload, model_name=self.name, infer_inputs=)
         instances = self.get_predict_input(payload)
         # Serialize to tensor
         if self.predictor_host:
