@@ -511,6 +511,7 @@ async def test_vit_predictor_host(request, httpx_mock: HTTPXMock):
                     "name": "OUTPUT__0",
                     "shape": [1, 1000],
                     "data": vit_return_predict_output,
+                    "datatype": "FP32",
                 }
             ]
         }

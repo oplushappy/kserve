@@ -68,6 +68,7 @@ class HuggingfaceImageModel(Model):  # pylint:disable=c-extension-no-member
         model_id_or_path: Union[pathlib.Path, str],
         model_config: Optional[PretrainedConfig] = None,
         task: Optional[MLTask] = None,
+        dtype: torch.dtype = torch.float32,
         tensor_input_names: Optional[str] = None,
         model_revision: Optional[str] = None,
         image_processor_revision: Optional[str] = None,
@@ -77,6 +78,7 @@ class HuggingfaceImageModel(Model):  # pylint:disable=c-extension-no-member
         super().__init__(model_name, predictor_config)
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model_id_or_path = model_id_or_path
+        self.dtype = dtype
         self.tensor_input_names = tensor_input_names
         self.model_revision = model_revision
         self.image_processor_revision = image_processor_revision
@@ -131,6 +133,8 @@ class HuggingfaceImageModel(Model):  # pylint:disable=c-extension-no-member
             model_kwargs["trust_remote_code"] = True
             image_processor_kwargs["trust_remote_code"] = True
 
+        model_kwargs["torch_dtype"] = self.dtype
+        
         # load hugging face image preprocessor
         self._image_processor = AutoImageProcessor.from_pretrained(
             str(model_id_or_path),
