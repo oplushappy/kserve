@@ -12,23 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
+import io
 import os
 import sys
 import uuid
+from typing import Dict, List, Optional, Union
 
-from kserve.protocol.grpc.grpc_predict_v2_pb2 import InferParameter
-from typing import Dict, Union, List
-
-from kserve.utils.numpy_codec import from_np_dtype
-import pandas as pd
 import numpy as np
+import pandas as pd
 import psutil
 from cloudevents.conversion import to_binary, to_structured
 from cloudevents.http import CloudEvent
 from grpc import ServicerContext
+from kserve.protocol.grpc.grpc_predict_v2_pb2 import InferParameter
 from kserve.protocol.infer_type import InferOutput, InferRequest, InferResponse
+from kserve.utils.numpy_codec import from_np_dtype
+from PIL import Image
+
 from ..constants.constants import PredictorProtocol
 from ..errors import InvalidInput
+
+PILImage = Image.Image
 
 
 def is_running_in_k8s():
@@ -52,6 +57,16 @@ def get_isvc_namespace(inferenceservice):
 
 def get_ig_namespace(inferencegraph):
     return inferencegraph.metadata.namespace or get_default_target_namespace()
+
+
+def get_image(instance: str) -> Optional[PILImage]:
+    try:
+        raw_bytes = base64.b64decode(instance, validate=True)
+    except Exception:
+        return None
+
+    image_bytes = Image.open(io.BytesIO(raw_bytes))
+    return image_bytes if image_bytes.verify() else None
 
 
 def cpu_count():
@@ -148,7 +163,7 @@ def to_headers(context: ServicerContext) -> Dict[str, str]:
 
 def get_predict_input(
     payload: Union[Dict, InferRequest], columns: List = None
-) -> Union[np.ndarray, pd.DataFrame, List[str]]:
+) -> Union[np.ndarray, pd.DataFrame, List[str], PILImage]:
     if isinstance(payload, Dict):
         instances = payload["inputs"] if "inputs" in payload else payload["instances"]
         if len(instances) == 0:
@@ -165,6 +180,8 @@ def get_predict_input(
             return inputs
         else:
             if isinstance(instances[0], str):
+                if get_image(instances[0]):
+                    return [get_image(i) for i in instances]
                 return instances
             return np.array(instances)
     elif isinstance(payload, InferRequest):
@@ -180,6 +197,9 @@ def get_predict_input(
 
         if content_type == "pd":
             return payload.as_dataframe()
+        elif content_type == "image":
+            input = payload.inputs[0]
+            return [get_image(i) for i in input.data]
         else:
             input = payload.inputs[0]
             if (
