@@ -62,11 +62,10 @@ def get_ig_namespace(inferencegraph):
 def get_image(instance: str) -> Optional[PILImage]:
     try:
         raw_bytes = base64.b64decode(instance, validate=True)
+        image_bytes = Image.open(io.BytesIO(raw_bytes))
+        return image_bytes
     except Exception:
         return None
-
-    image_bytes = Image.open(io.BytesIO(raw_bytes))
-    return image_bytes if image_bytes.verify() else None
 
 
 def cpu_count():
@@ -163,7 +162,7 @@ def to_headers(context: ServicerContext) -> Dict[str, str]:
 
 def get_predict_input(
     payload: Union[Dict, InferRequest], columns: List = None
-) -> Union[np.ndarray, pd.DataFrame, List[str], PILImage]:
+) -> Union[np.ndarray, pd.DataFrame, List[str], List[PILImage]]:
     if isinstance(payload, Dict):
         instances = payload["inputs"] if "inputs" in payload else payload["instances"]
         if len(instances) == 0:
