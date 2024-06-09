@@ -191,7 +191,7 @@ class HuggingfaceImageModel(Model):  # pylint:disable=c-extension-no-member
             return infer_request
         else:
             inputs = self._image_processor(
-                instances,  # image
+                instances[0],  # image
                 return_tensors=TensorType.PYTORCH,
             )
             context["payload"] = payload
