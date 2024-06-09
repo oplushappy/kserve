@@ -170,7 +170,7 @@ class HuggingfaceImageModel(Model):  # pylint:disable=c-extension-no-member
         if self.predictor_host:
             # still can add
             inputs = self._image_processor(
-                instances,  # image
+                instances[0],  # image
                 return_tensors=TensorType.NUMPY,
             )
             context["payload"] = payload
