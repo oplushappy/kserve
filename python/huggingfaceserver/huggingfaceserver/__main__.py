@@ -17,27 +17,26 @@ from pathlib import Path
 from typing import cast
 
 import torch
-import kserve
-from kserve import logging
-from kserve.logging import logger
-from kserve.model import PredictorConfig
-from kserve.storage import Storage
-
-from transformers import AutoConfig
-
 from huggingfaceserver.task import (
+    SUPPORTED_TASKS,
     MLTask,
     infer_task_from_model_architecture,
     is_generative_task,
     is_image_task,
-    SUPPORTED_TASKS,
 )
-from .image_model import HuggingfaceImageModel 
+from kserve.logging import logger
+from kserve.model import PredictorConfig
+from kserve.storage import Storage
+from transformers import AutoConfig
+
+import kserve
+from kserve import logging
+
 from . import (
-    HuggingfaceGenerativeModel,
-    HuggingfaceEncoderModel,
-    # HuggingfaceImageModel,
     Backend,
+    HuggingfaceEncoderModel,
+    HuggingfaceGenerativeModel,
+    HuggingfaceImageModel,
 )
 from .vllm.utils import (
     build_vllm_engine_args,

@@ -484,23 +484,23 @@ async def test_vit_image_classificaton_base64(vit_image_classification: Huggingf
     img_base64 = base64.b64encode(img_bytes).decode('utf-8')
 
     response = await vit_image_classification(
-        {"instances": [{"image": img_base64}]},
+        {"inputs": [img_base64]},
         headers={}
     )
     
     assert response == {"predictions": ["Egyptian cat"]}
 
-@pytest.mark.asyncio
-async def test_vit_image_classification_bytes(vit_image_classification: HuggingfaceImageModel):
-    image_url = "http://images.cocodataset.org/val2017/000000039769.jpg"
-    img_bytes = get_image_from_url(image_url)
+# @pytest.mark.asyncio
+# async def test_vit_image_classification_bytes(vit_image_classification: HuggingfaceImageModel):
+#     image_url = "http://images.cocodataset.org/val2017/000000039769.jpg"
+#     img_bytes = get_image_from_url(image_url)
 
-    response = await vit_image_classification(
-        img_bytes,
-        headers={}
-    )
+#     response = await vit_image_classification(
+#         img_bytes,
+#         headers={}
+#     )
 
-    assert response == {"predictions": ["Egyptian cat"]}
+#     assert response == {"predictions": ["Egyptian cat"]}
 
 @pytest.mark.asyncio
 async def test_vit_predictor_host(request, httpx_mock: HTTPXMock):
@@ -521,7 +521,7 @@ async def test_vit_predictor_host(request, httpx_mock: HTTPXMock):
         "vit-base-patch16-224",
         model_id_or_path="google/vit-base-patch16-224",
         predictor_config=PredictorConfig(
-            predictor_host="localhost:8082", predictor_protocol="v2"
+            predictor_host="localhost:8081", predictor_protocol="v2"
         ),
     )
     model.load()
@@ -529,9 +529,10 @@ async def test_vit_predictor_host(request, httpx_mock: HTTPXMock):
     
     image_url = "http://images.cocodataset.org/val2017/000000039769.jpg"
     img_bytes = get_image_from_url(image_url)
+    img_base64 = base64.b64encode(img_bytes).decode('utf-8')
 
     response = await model(
-        img_bytes,
+        {"inputs": [img_base64]},
         headers={}
     )
     assert response == {"predictions": ["Egyptian cat"]}

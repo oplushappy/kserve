@@ -12,42 +12,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
+import io
 import pathlib
 from typing import Any, Dict, Optional, Union
 
-import torch
-import base64
-from PIL import Image
 import numpy as np
-import io
+import torch
 from accelerate import init_empty_weights
-from kserve import Model
 from kserve.errors import InferenceError
 from kserve.logging import logger
 from kserve.model import PredictorConfig
 from kserve.protocol.infer_type import InferInput, InferRequest, InferResponse
-from kserve.utils.utils import (
-    from_np_dtype,
-    get_predict_input,
-    get_predict_response,
-)
+from kserve.utils.utils import from_np_dtype, get_predict_input, get_predict_response
+from PIL import Image
 from torch import Tensor
 from transformers import (
     AutoConfig,
-    AutoModel,
     AutoImageProcessor,
-    PreTrainedModel,
+    AutoModel,
     PretrainedConfig,
+    PreTrainedModel,
     TensorType,
 )
 
+from kserve import Model
+
 from .task import (
     MLTask,
-    is_generative_task,
-    is_image_task,
     get_model_class_for_task,
     infer_task_from_model_architecture,
+    is_generative_task,
+    is_image_task,
 )
+
+PILImage = Image.Image
 
 
 class HuggingfaceImageModel(Model):  # pylint:disable=c-extension-no-member
@@ -121,7 +120,7 @@ class HuggingfaceImageModel(Model):  # pylint:disable=c-extension-no-member
         with init_empty_weights():
             self._model = AutoModel.from_config(self.model_config)
 
-        device_map : str = str(self._device)
+        device_map: str = str(self._device)
 
         if self._model._no_split_modules:
             device_map = "auto"
@@ -134,7 +133,7 @@ class HuggingfaceImageModel(Model):  # pylint:disable=c-extension-no-member
             image_processor_kwargs["trust_remote_code"] = True
 
         model_kwargs["torch_dtype"] = self.dtype
-        
+
         # load hugging face image preprocessor
         self._image_processor = AutoImageProcessor.from_pretrained(
             str(model_id_or_path),
@@ -159,41 +158,19 @@ class HuggingfaceImageModel(Model):  # pylint:disable=c-extension-no-member
             )
         self.ready = True
         return self.ready
-    
-    def get_predict_input(self, payload: Union[Dict, bytes]):
-        """Extracts image data from the payload supporting both byte array and base64 encoded string"""
-        if isinstance(payload, bytes):
-            # Handle byte array input
-            images = [Image.open(io.BytesIO(payload)).convert("RGB")]
-        else:
-            # Handle JSON payload
-            instances = payload["instances"]
-            images = []
-            for instance in instances:
-                image_data = instance["image"]  # Assuming the image is in the "image" field
-                if isinstance(image_data, str):
-                    # Handle base64 encoded string
-                    image_bytes = base64.b64decode(image_data)
-                else:
-                    # Handle byte array
-                    image_bytes = image_data
-                image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-                images.append(image)
-        return images
 
     def preprocess(
         self,
-        payload: Union[Dict, InferRequest, bytes],
+        payload: Union[Dict, InferRequest],
         context: Dict[str, Any],
     ) -> Union[Dict, InferRequest]:
         # Get the images from the payload
-        # InferRequest(raw_inputs=payload, model_name=self.name, infer_inputs=)
-        instances = self.get_predict_input(payload)
+        instances = get_predict_input(payload)
         # Serialize to tensor
         if self.predictor_host:
             # still can add
             inputs = self._image_processor(
-                instances, # image
+                instances,  # image
                 return_tensors=TensorType.NUMPY,
             )
             context["payload"] = payload
@@ -214,7 +191,7 @@ class HuggingfaceImageModel(Model):  # pylint:disable=c-extension-no-member
             return infer_request
         else:
             inputs = self._image_processor(
-                instances, # image
+                instances,  # image
                 return_tensors=TensorType.PYTORCH,
             )
             context["payload"] = payload
@@ -230,7 +207,7 @@ class HuggingfaceImageModel(Model):  # pylint:disable=c-extension-no-member
             # when predictor_host is provided, serialize the tensor and send to optimized model serving runtime
             # like NVIDIA triton inference server
             return await super().predict(input_batch, context)
-        else: # local host
+        else:  # local host
             input_batch = input_batch.to(self._device)
             try:
                 with torch.no_grad():
@@ -242,9 +219,7 @@ class HuggingfaceImageModel(Model):  # pylint:disable=c-extension-no-member
                 raise InferenceError(str(e))
 
     def postprocess(
-        self, 
-        outputs: Union[Tensor, InferResponse], 
-        context: Dict[str, Any]
+        self, outputs: Union[Tensor, InferResponse], context: Dict[str, Any]
     ) -> Union[Dict, InferResponse]:
         pixel_values = context["pixel_values"]
         request = context["payload"]

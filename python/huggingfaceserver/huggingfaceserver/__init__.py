@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from enum import Enum, auto as auto_value
+from enum import Enum
+from enum import auto as auto_value
+
 from .encoder_model import HuggingfaceEncoderModel
 from .generative_model import HuggingfaceGenerativeModel
+from .image_model import HuggingfaceImageModel
 
 
 class Backend(str, Enum):
@@ -30,4 +33,5 @@ class Backend(str, Enum):
 __all__ = [
     "HuggingfaceGenerativeModel",
     "HuggingfaceEncoderModel",
+    "HuggingfaceImageModel",
 ]
