@@ -495,7 +495,7 @@ async def test_vit_image_classificaton_base64(vit_image_classification: Huggingf
 @pytest.mark.asyncio
 async def test_vit_image_classificaton_base64_multiple(vit_image_classification: HuggingfaceImageModel):
     image_url1 = "http://images.cocodataset.org/val2017/000000039769.jpg"
-    image_url2 = "https://reurl.cc/p342dd"
+    image_url2 = "https://farm8.staticflickr.com/7170/6716063529_8e54c7600e_z.jpg"
     img_bytes1 = get_image_from_url(image_url1)
     img_bytes2 = get_image_from_url(image_url2)
 
@@ -507,7 +507,7 @@ async def test_vit_image_classificaton_base64_multiple(vit_image_classification:
         headers={}
     )
     
-    assert response == {"predictions": ["Egyptian cat", "jacamar"]}
+    assert response == {"predictions": ["Egyptian cat", "robin, American robin, Turdus migratorius"]}
 # @pytest.mark.asyncio
 # async def test_vit_image_classification_bytes(vit_image_classification: HuggingfaceImageModel):
 #     image_url = "http://images.cocodataset.org/val2017/000000039769.jpg"
