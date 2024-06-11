@@ -24,27 +24,18 @@ from kserve.errors import InferenceError
 from kserve.logging import logger
 from kserve.model import PredictorConfig
 from kserve.protocol.infer_type import InferInput, InferRequest, InferResponse
-from kserve.utils.utils import from_np_dtype, get_predict_input, get_predict_response
+from kserve.utils.utils import (from_np_dtype, get_predict_input,
+                                get_predict_response)
 from PIL import Image
 from torch import Tensor
-from transformers import (
-    AutoConfig,
-    AutoImageProcessor,
-    AutoModel,
-    PretrainedConfig,
-    PreTrainedModel,
-    TensorType,
-)
+from transformers import (AutoConfig, AutoImageProcessor, AutoModel,
+                          PretrainedConfig, PreTrainedModel, TensorType)
 
 from kserve import Model
 
-from .task import (
-    MLTask,
-    get_model_class_for_task,
-    infer_task_from_model_architecture,
-    is_generative_task,
-    is_image_task,
-)
+from .task import (MLTask, get_model_class_for_task,
+                   infer_task_from_model_architecture, is_generative_task,
+                   is_image_task)
 
 PILImage = Image.Image
 
@@ -170,7 +161,7 @@ class HuggingfaceImageModel(Model):  # pylint:disable=c-extension-no-member
         if self.predictor_host:
             # still can add
             inputs = self._image_processor(
-                instances[0],  # image
+                instances,  # image
                 return_tensors=TensorType.NUMPY,
             )
             context["payload"] = payload
@@ -191,7 +182,7 @@ class HuggingfaceImageModel(Model):  # pylint:disable=c-extension-no-member
             return infer_request
         else:
             inputs = self._image_processor(
-                instances[0],  # image
+                instances,  # image
                 return_tensors=TensorType.PYTORCH,
             )
             context["payload"] = payload
