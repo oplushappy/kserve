@@ -508,17 +508,6 @@ async def test_vit_image_classificaton_base64_multiple(vit_image_classification:
     )
     
     assert response == {"predictions": ["Egyptian cat", "robin, American robin, Turdus migratorius"]}
-# @pytest.mark.asyncio
-# async def test_vit_image_classification_bytes(vit_image_classification: HuggingfaceImageModel):
-#     image_url = "http://images.cocodataset.org/val2017/000000039769.jpg"
-#     img_bytes = get_image_from_url(image_url)
-
-#     response = await vit_image_classification(
-#         img_bytes,
-#         headers={}
-#     )
-
-#     assert response == {"predictions": ["Egyptian cat"]}
 
 @pytest.mark.asyncio
 async def test_vit_predictor_host(request, httpx_mock: HTTPXMock):
