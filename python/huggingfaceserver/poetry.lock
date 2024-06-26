@@ -1698,13 +1698,13 @@ files = [
 
 [[package]]
 name = "lm-format-enforcer"
-version = "0.9.8"
+version = "0.10.1"
 description = "Enforce the output format (JSON Schema, Regex etc) of a language model"
 optional = true
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "lm_format_enforcer-0.9.8-py3-none-any.whl", hash = "sha256:6525906bb11a538afb4c6ea4fdac7c693b7b43c6f3a361ec1a7179385e5682b1"},
-    {file = "lm_format_enforcer-0.9.8.tar.gz", hash = "sha256:b3433c50674045b0e46cd53e5016aa3aa1ba2740411802f57441a4c80d3f9606"},
+    {file = "lm_format_enforcer-0.10.1-py3-none-any.whl", hash = "sha256:5520004af248d787930327ead052aeff75e21fad595f388e5eade9f062ffddda"},
+    {file = "lm_format_enforcer-0.10.1.tar.gz", hash = "sha256:23e65a4199714fca348063e8c906838622619f905a673c4d6d428eee7e7d2095"},
 ]
 
 [package.dependencies]
@@ -2377,6 +2377,7 @@ description = "Nvidia JIT LTO Library"
 optional = false
 python-versions = ">=3"
 files = [
+    {file = "nvidia_nvjitlink_cu12-12.4.127-py3-none-manylinux2014_aarch64.whl", hash = "sha256:4abe7fef64914ccfa909bc2ba39739670ecc9e820c83ccc7a6ed414122599b83"},
     {file = "nvidia_nvjitlink_cu12-12.4.127-py3-none-manylinux2014_x86_64.whl", hash = "sha256:06b3b9b25bf3f8af351d664978ca26a16d2c5127dbd53c0497e28d1fb9611d57"},
     {file = "nvidia_nvjitlink_cu12-12.4.127-py3-none-win_amd64.whl", hash = "sha256:fd9020c501d27d135f983c6d3e244b197a7ccad769e34df53a42e276b0e25fa1"},
 ]
@@ -4653,23 +4654,24 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 
 [[package]]
 name = "vllm"
-version = "0.4.2"
+version = "0.4.3"
 description = "A high-throughput and memory-efficient inference and serving engine for LLMs"
 optional = true
 python-versions = ">=3.8"
 files = [
-    {file = "vllm-0.4.2-cp310-cp310-manylinux1_x86_64.whl", hash = "sha256:26ad388c1c6ec0348c19495318c1e10911d5fd4c67aa53c868c7ee773ecf1163"},
-    {file = "vllm-0.4.2-cp311-cp311-manylinux1_x86_64.whl", hash = "sha256:94afce6af9a2adb1e72081a245b116325073a9266e88044169fbaf6707d847c0"},
-    {file = "vllm-0.4.2-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:27b395dff451c10e2ce699980a047c52d7aa8737b59fbd8e333e824c94401a16"},
-    {file = "vllm-0.4.2-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:0fc6220591f40b6f715bd040a293b9e0732fdad100bd25c5a02eb4b461680223"},
-    {file = "vllm-0.4.2.tar.gz", hash = "sha256:0b857f3084b507cbdd3bfcbaae19d171c55df9955eb3ac41c9c711768e852772"},
+    {file = "vllm-0.4.3-cp310-cp310-manylinux1_x86_64.whl", hash = "sha256:908089b6075deca4b74e887494b8e201ca5f7fade0c63fb0805be1a40839854c"},
+    {file = "vllm-0.4.3-cp311-cp311-manylinux1_x86_64.whl", hash = "sha256:921fb85d4823c00f242a3fa3c4e724ea56d82375b9bedbbb4e32c4d53fa6a1b2"},
+    {file = "vllm-0.4.3-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:e180385874f1ad1f8ecf96effa399515bbddada0a7e6ef687f417eddf84885ec"},
+    {file = "vllm-0.4.3-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:73884900feced23d6134174b37069361a1bad31eb963f105c583c0c1fee1fb16"},
+    {file = "vllm-0.4.3.tar.gz", hash = "sha256:fe547a463d4de939d094aa96779047424e287fc66ab5eec1d00a7a01e9944626"},
 ]
 
 [package.dependencies]
+aiohttp = "*"
 cmake = ">=3.21"
 fastapi = "*"
 filelock = ">=3.10.4"
-lm-format-enforcer = "0.9.8"
+lm-format-enforcer = "0.10.1"
 ninja = "*"
 numpy = "<2.0.0"
 nvidia-ml-py = "*"
@@ -4685,7 +4687,7 @@ pyzmq = "*"
 ray = ">=2.9"
 requests = "*"
 sentencepiece = "*"
-tiktoken = "0.6.0"
+tiktoken = ">=0.6.0"
 tokenizers = ">=0.19.1"
 torch = "2.3.1"
 torchvision = "0.18.1"
@@ -4693,21 +4695,27 @@ tqdm = "*"
 transformers = ">=4.42.4"
 typing-extensions = "*"
 uvicorn = {version = "*", extras = ["standard"]}
-vllm-nccl-cu12 = ">=2.18,<2.19"
+vllm-flash-attn = "2.5.8.post2"
 xformers = "0.0.26.post1"
 
 [package.extras]
-tensorizer = ["tensorizer (==2.9.0)"]
+tensorizer = ["tensorizer (>=2.9.0)"]
 
 [[package]]
-name = "vllm-nccl-cu12"
-version = "2.18.1.0.4.0"
-description = ""
+name = "vllm-flash-attn"
+version = "2.5.8.post2"
+description = "Forward-only flash-attn"
 optional = true
-python-versions = "*"
+python-versions = ">=3.8"
 files = [
-    {file = "vllm_nccl_cu12-2.18.1.0.4.0.tar.gz", hash = "sha256:d56535da1b893ac49c1f40be9245f999e543c3fc95b4839642b70dd1d72760c0"},
+    {file = "vllm_flash_attn-2.5.8.post2-cp310-cp310-manylinux1_x86_64.whl", hash = "sha256:f465bda12f943958bdec09d4957f4e00d0c512e42606cbe60e16db394ca77291"},
+    {file = "vllm_flash_attn-2.5.8.post2-cp311-cp311-manylinux1_x86_64.whl", hash = "sha256:fbc424eb068e1b458c2d44171b159b0c0e3c5560106a32b00410b305736ff034"},
+    {file = "vllm_flash_attn-2.5.8.post2-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:febb0676b1cf6051328dcdb0fdf381f5f96899899071fd96ab7a0dc842d2b8d3"},
+    {file = "vllm_flash_attn-2.5.8.post2-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:754e5c2c29f023294af7a8113dba2cb715059cb9fafcf954bd2debac79b89702"},
 ]
+
+[package.dependencies]
+torch = "2.3.0"
 
 [[package]]
 name = "watchfiles"
@@ -5222,4 +5230,4 @@ vllm = ["vllm"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "b4954308b8e7921ed883decb5e3b3e70f433e1e9bda1679d992f8d94191b07aa"
+content-hash = "24cd32ca2ff58db37c22b277cdb6baf89bc56fc4e50ffb1923ab1e2d0d72a331"
