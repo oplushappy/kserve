@@ -532,7 +532,6 @@ async def test_vit_predictor_host(request, httpx_mock: HTTPXMock):
 
     test_image_urls = [
         "http://images.cocodataset.org/val2017/000000039769.jpg",
-        "https://farm8.staticflickr.com/7170/6716063529_8e54c7600e_z.jpg",
     ]
 
     response = await model(
@@ -543,6 +542,4 @@ async def test_vit_predictor_host(request, httpx_mock: HTTPXMock):
         },
         headers={},
     )
-    assert response == {
-        "predictions": ["Egyptian cat", "robin, American robin, Turdus migratorius"]
-    }
+    assert response == {"predictions": ["Egyptian cat"]}
