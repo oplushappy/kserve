@@ -59,13 +59,14 @@ def get_ig_namespace(inferencegraph):
     return inferencegraph.metadata.namespace or get_default_target_namespace()
 
 
-def get_image(instance: str) -> Optional[PILImage]:
+def get_image_from_base64(instance: str) -> Optional[PILImage]:
     try:
         raw_bytes = base64.b64decode(instance, validate=True)
         image_bytes = Image.open(io.BytesIO(raw_bytes))
         return image_bytes
     except Exception:
         return None
+
 
 
 def cpu_count():
@@ -162,7 +163,7 @@ def to_headers(context: ServicerContext) -> Dict[str, str]:
 
 def get_predict_input(
     payload: Union[Dict, InferRequest], columns: List = None
-) -> Union[np.ndarray, pd.DataFrame, List[str], List[PILImage]]:
+) -> Union[np.ndarray, pd.DataFrame, List[str], List[Optional[PILImage]]]:
     if isinstance(payload, Dict):
         instances = payload["inputs"] if "inputs" in payload else payload["instances"]
         if len(instances) == 0:
@@ -179,8 +180,8 @@ def get_predict_input(
             return inputs
         else:
             if isinstance(instances[0], str):
-                if get_image(instances[0]):
-                    return [get_image(i) for i in instances]
+                if get_image_from_base64(instances[0]):
+                    return [get_image_from_base64(i) for i in instances]
                 return instances
             return np.array(instances)
     elif isinstance(payload, InferRequest):
@@ -198,7 +199,7 @@ def get_predict_input(
             return payload.as_dataframe()
         elif content_type == "image":
             input = payload.inputs[0]
-            return [get_image(i) for i in input.data]
+            return [get_image_from_base64(i) for i in input.data]
         else:
             input = payload.inputs[0]
             if (

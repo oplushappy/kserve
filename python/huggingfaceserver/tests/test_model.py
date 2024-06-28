@@ -18,10 +18,11 @@ import urllib.request
 import pytest
 import torch
 from kserve.model import PredictorConfig
-from kserve.protocol.rest.openai import (ChatCompletionRequest,
-                                         CompletionRequest)
-from kserve.protocol.rest.openai.types import (CreateChatCompletionRequest,
-                                               CreateCompletionRequest)
+from kserve.protocol.rest.openai import ChatCompletionRequest, CompletionRequest
+from kserve.protocol.rest.openai.types import (
+    CreateChatCompletionRequest,
+    CreateCompletionRequest,
+)
 from pytest import approx
 from pytest_httpx import HTTPXMock
 from transformers import AutoConfig
@@ -142,15 +143,16 @@ def openai_gpt_model():
     yield model
     model.stop()
 
+
 @pytest.fixture(scope="module")
 def vit_image_classification():
     model = HuggingfaceImageModel(
-        "vit-base-patch16-224",
-        model_id_or_path="google/vit-base-patch16-224"
+        "vit-base-patch16-224", model_id_or_path="google/vit-base-patch16-224"
     )
     model.load()
     yield model
     model.stop()
+
 
 def test_unsupported_model():
     config = AutoConfig.from_pretrained("google/tapas-base-finetuned-wtq")
@@ -471,43 +473,33 @@ async def test_input_padding_with_pad_token_not_specified(
     )
     assert "a member of the royal family." in response.choices[1].text
 
-def get_image_from_url(url: str) -> bytes:
-    # response = requests.get(url)
-    # response.raise_for_status()
-    # return response.content
+
+def get_image_base64_from_url(url: str) -> str:
     with urllib.request.urlopen(url) as response:
-        return response.read()
+        img_bytes = response.read()
+        return base64.b64encode(img_bytes).decode("utf-8")
+
 
 @pytest.mark.asyncio
-async def test_vit_image_classificaton_base64(vit_image_classification: HuggingfaceImageModel):
-    image_url = "http://images.cocodataset.org/val2017/000000039769.jpg"
-    img_bytes = get_image_from_url(image_url)
-
-    img_base64 = base64.b64encode(img_bytes).decode('utf-8')
-
-    response = await vit_image_classification(
-        {"inputs": [img_base64]},
-        headers={}
-    )
-    
-    assert response == {"predictions": ["Egyptian cat"]}
-
-@pytest.mark.asyncio
-async def test_vit_image_classificaton_base64_multiple(vit_image_classification: HuggingfaceImageModel):
-    image_url1 = "http://images.cocodataset.org/val2017/000000039769.jpg"
-    image_url2 = "https://farm8.staticflickr.com/7170/6716063529_8e54c7600e_z.jpg"
-    img_bytes1 = get_image_from_url(image_url1)
-    img_bytes2 = get_image_from_url(image_url2)
-
-    img_base64_1 = base64.b64encode(img_bytes1).decode('utf-8')
-    img_base64_2 = base64.b64encode(img_bytes2).decode('utf-8')
+async def test_vit_image_classificaton(vit_image_classification: HuggingfaceImageModel):
+    test_image_urls = [
+        "http://images.cocodataset.org/val2017/000000039769.jpg",
+        "https://farm8.staticflickr.com/7170/6716063529_8e54c7600e_z.jpg",
+    ]
 
     response = await vit_image_classification(
-        {"inputs": [img_base64_1, img_base64_2]},
-        headers={}
+        {
+            "inputs": [
+                get_image_base64_from_url(image_url) for image_url in test_image_urls
+            ]
+        },
+        headers={},
     )
-    
-    assert response == {"predictions": ["Egyptian cat", "robin, American robin, Turdus migratorius"]}
+
+    assert response == {
+        "predictions": ["Egyptian cat", "robin, American robin, Turdus migratorius"]
+    }
+
 
 @pytest.mark.asyncio
 async def test_vit_predictor_host(request, httpx_mock: HTTPXMock):
@@ -533,13 +525,20 @@ async def test_vit_predictor_host(request, httpx_mock: HTTPXMock):
     )
     model.load()
     request.addfinalizer(model.stop)
-    
-    image_url = "http://images.cocodataset.org/val2017/000000039769.jpg"
-    img_bytes = get_image_from_url(image_url)
-    img_base64 = base64.b64encode(img_bytes).decode('utf-8')
+
+    test_image_urls = [
+        "http://images.cocodataset.org/val2017/000000039769.jpg",
+        "https://farm8.staticflickr.com/7170/6716063529_8e54c7600e_z.jpg",
+    ]
 
     response = await model(
-        {"inputs": [img_base64]},
-        headers={}
+        {
+            "inputs": [
+                get_image_base64_from_url(image_url) for image_url in test_image_urls
+            ]
+        },
+        headers={},
     )
-    assert response == {"predictions": ["Egyptian cat"]}
+    assert response == {
+        "predictions": ["Egyptian cat", "robin, American robin, Turdus migratorius"]
+    }
