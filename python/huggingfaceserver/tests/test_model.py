@@ -14,6 +14,7 @@
 
 import base64
 import urllib.request
+from urllib.error import HTTPError
 
 import pytest
 import torch
@@ -476,6 +477,9 @@ async def test_input_padding_with_pad_token_not_specified(
 
 def get_image_base64_from_url(url: str) -> str:
     with urllib.request.urlopen(url) as response:
+        status_code = response.getcode()
+        if status_code > 400:
+            raise HTTPError()
         img_bytes = response.read()
         return base64.b64encode(img_bytes).decode("utf-8")
 
