@@ -15,18 +15,19 @@
 import os
 
 import pytest
+from kserve.constants import constants
 from kubernetes import client
 from kubernetes.client import V1ResourceRequirements
 
 from kserve import (
-    V1beta1PredictorSpec,
-    V1beta1ModelSpec,
-    V1beta1ModelFormat,
+    KServeClient,
     V1beta1InferenceService,
     V1beta1InferenceServiceSpec,
-    KServeClient,
+    V1beta1ModelFormat,
+    V1beta1ModelSpec,
+    V1beta1PredictorSpec,
 )
-from kserve.constants import constants
+
 from ..common.utils import KSERVE_TEST_NAMESPACE, generate, predict_isvc
 
 
@@ -280,5 +281,103 @@ def test_huggingface_openai_text_2_text():
         service_name, "./data/t5_small_generate.json", chat_completions=False
     )
     assert res["choices"][0]["text"] == "Das ist für Deutschland"
+
+    kserve_client.delete(service_name, KSERVE_TEST_NAMESPACE)
+
+
+@pytest.mark.llm
+def test_huggingface_v1_image_classification():
+    service_name = "hf-vit-image-classification"
+    protocol_version = "v1"
+    predictor = V1beta1PredictorSpec(
+        min_replicas=1,
+        model=V1beta1ModelSpec(
+            model_format=V1beta1ModelFormat(
+                name="huggingface",
+            ),
+            protocol_version=protocol_version,
+            args=[
+                "--model_id",
+                "vit-base-patch16-224",
+            ],
+            resources=V1ResourceRequirements(
+                requests={"cpu": "1", "memory": "2Gi"},
+                limits={"cpu": "1", "memory": "4Gi"},
+            ),
+        ),
+    )
+
+    isvc = V1beta1InferenceService(
+        api_version=constants.KSERVE_V1BETA1,
+        kind=constants.KSERVE_KIND,
+        metadata=client.V1ObjectMeta(
+            name=service_name, namespace=KSERVE_TEST_NAMESPACE
+        ),
+        spec=V1beta1InferenceServiceSpec(predictor=predictor),
+    )
+
+    kserve_client = KServeClient(
+        config_file=os.environ.get("KUBECONFIG", "~/.kube/config")
+    )
+    kserve_client.create(isvc)
+    kserve_client.wait_isvc_ready(service_name, namespace=KSERVE_TEST_NAMESPACE)
+
+    res = predict(
+        service_name,
+        "./data/vit-image-classification_v1.json",
+        protocol_version=protocol_version,
+    )
+    assert res["predictions"] == ["Egyptian cat"]
+
+    kserve_client.delete(service_name, KSERVE_TEST_NAMESPACE)
+
+
+@pytest.mark.llm
+def test_huggingface_v2_image_classification():
+    service_name = "hf-vit-image-classification-v2"
+    protocol_version = "v2"
+    predictor = V1beta1PredictorSpec(
+        min_replicas=1,
+        model=V1beta1ModelSpec(
+            model_format=V1beta1ModelFormat(
+                name="huggingface",
+            ),
+            protocol_version=protocol_version,
+            args=[
+                "--model_id",
+                "vit-base-patch16-224",
+                "--model_revision",
+                "4b534963167c08d4b8ff1f88733cf2930f86add0",
+                "--tokenizer_revision",
+                "4b534963167c08d4b8ff1f88733cf2930f86add0",
+            ],
+            resources=V1ResourceRequirements(
+                requests={"cpu": "1", "memory": "2Gi"},
+                limits={"cpu": "1", "memory": "4Gi"},
+            ),
+        ),
+    )
+
+    isvc = V1beta1InferenceService(
+        api_version=constants.KSERVE_V1BETA1,
+        kind=constants.KSERVE_KIND,
+        metadata=client.V1ObjectMeta(
+            name=service_name, namespace=KSERVE_TEST_NAMESPACE
+        ),
+        spec=V1beta1InferenceServiceSpec(predictor=predictor),
+    )
+
+    kserve_client = KServeClient(
+        config_file=os.environ.get("KUBECONFIG", "~/.kube/config")
+    )
+    kserve_client.create(isvc)
+    kserve_client.wait_isvc_ready(service_name, namespace=KSERVE_TEST_NAMESPACE)
+
+    res = predict(
+        service_name,
+        "./data/bert_token_classification_v2.json",
+        protocol_version=protocol_version,
+    )
+    assert res["predictions"] == ["Egyptian cat"]
 
     kserve_client.delete(service_name, KSERVE_TEST_NAMESPACE)
